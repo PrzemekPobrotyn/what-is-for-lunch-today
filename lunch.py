@@ -93,7 +93,6 @@ def _send_mail(message, to, sender=email_address, password=email_password):
 
     msg = MIMEMultipart()
     msg['From'] = sender
-    msg['To'] = ",".join(to)
     msg['Subject'] = "Dzisiejsza oferta lunchowa: {}".format(_date_today())
 
     body = message
@@ -120,5 +119,6 @@ if __name__ == '__main__':
     exit_script(b)
 
 #TODO: add unittests
+#TODO: docstrings
 #TODO: schedule automatic script execution
 #TODO: add redoing the script if exit code is 1 every x minutes
