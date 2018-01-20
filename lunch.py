@@ -69,14 +69,14 @@ def _check_lunches(lunches_dict):
 
 def send_menu(lunches_dict, mailing_list):
     if _check_lunches(lunches_dict):
-        message  = _reformat_lunches_dict(lunches_dict)
+        message = _lunches_dict_to_html(lunches_dict)
         _send_mail(message, to=mailing_list)
         return True
     else:
         return False
 
 
-def _reformat_lunches_dict(lunches_dict):
+def _lunches_dict_to_html(lunches_dict):
 
     html = "<html><head></head><body>"
 
