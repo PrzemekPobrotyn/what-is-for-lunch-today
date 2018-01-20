@@ -1,13 +1,14 @@
-from credentials import USER_TOKEN
-from config import restaurants, posts_limit, keywords, mailing_list
-import facebook
-import sys
 import datetime
+import smtplib
+import sys
 
+import facebook
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
-def _date_today():
-    now = datetime.datetime.now()
-    return now.strftime("%Y-%m-%d")
+from config import restaurants, posts_limit, keywords
+from credentials import USER_TOKEN, email_address, email_password
+from mailing_list import mailing_list
 
 
 def start_graph(access_token=USER_TOKEN):
@@ -27,9 +28,13 @@ def _is_about_lunch(post, keywords):
     return any(word in post['message'].split() for word in keywords)
 
 
+def _date_today():
+    now = datetime.datetime.now()
+    # return now.strftime("%Y-%m-%d")
+    return "2018-01-19"
+
+
 def _is_today(post):
-    print(post['created_time'][:10])
-    print(_date_today())
     return post['created_time'][:10] == _date_today()
 
 
@@ -52,7 +57,6 @@ def find_todays_lunch_all_restaurants(
         resp = _fetch_restaurant_posts(graph, rest_id, limit)
         lunches[rest_name] = _find_todays_lunch_single_restaurant(
             resp, keywords)
-    print(lunches)
     return lunches
 
 
@@ -65,10 +69,42 @@ def _check_lunches(lunches_dict):
 
 def send_menu(lunches_dict, mailing_list):
     if _check_lunches(lunches_dict):
-        # send out mailing to mailing_list
+        message  = _reformat_lunches_dict(lunches_dict)
+        _send_mail(message, to=mailing_list)
         return True
     else:
         return False
+
+
+def _reformat_lunches_dict(lunches_dict):
+
+    html = "<html><head></head><body>"
+
+    for restaurant in lunches_dict.keys():
+        html += "<h3>{0}</h3><p><pre>{1}</pre></p>".format(
+            restaurant, lunches_dict[restaurant])
+
+    html += "</body></html>"
+
+    return html
+
+
+def _send_mail(message, to, sender=email_address, password=email_password):
+
+    msg = MIMEMultipart()
+    msg['From'] = sender
+    msg['To'] = ",".join(to)
+    msg['Subject'] = "Dzisiejsza oferta lunchowa: {}".format(_date_today())
+
+    body = message
+    msg.attach(MIMEText(body, 'html'))
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(sender, password)
+    text = msg.as_string()
+    server.sendmail(sender, to, text)
+    server.quit()
 
 
 def exit_script(bool):
@@ -82,3 +118,7 @@ if __name__ == '__main__':
     lunches = find_todays_lunch_all_restaurants(graph)
     b = send_menu(lunches, mailing_list)
     exit_script(b)
+
+#TODO: add unittests
+#TODO: schedule automatic script execution
+#TODO: add redoing the script if exit code is 1 every x minutes
