@@ -51,6 +51,15 @@ def _find_todays_lunch_single_restaurant(resp, keywords=keywords):
 
 def find_todays_lunch_all_restaurants(
         graph, restaurants=restaurants, keywords=keywords, limit=posts_limit):
+    """
+    Finds a lunch posts from all restaruants.
+    :param graph: an authenticated facebook graph API object
+    :param restaurants, a dict of restaurants for which to fetch lunches
+    :param keywords, list of keywords by which to recognise a post about lunch
+    :param limit, int, number of posts to fetch in order to search for lunch
+    :return: lunches, dict where keys are restaurants names and values are
+    strs - contents of fb posts with restaurants lunch offers
+    """
 
     lunches = {}
     for rest_name, rest_id in restaurants.items():
@@ -61,6 +70,7 @@ def find_todays_lunch_all_restaurants(
 
 
 def _check_lunches(lunches_dict):
+    """Checks if every restaurant posted their lunch already."""
     if not all(lunches_dict.values()):
         return False
     else:
@@ -68,6 +78,7 @@ def _check_lunches(lunches_dict):
 
 
 def send_menu(lunches_dict, mailing_list):
+    """Sends many to all addresses from the mailing list."""
     if _check_lunches(lunches_dict):
         message = _lunches_dict_to_html(lunches_dict)
         _send_mail(message, to=mailing_list)
@@ -107,6 +118,11 @@ def _send_mail(message, to, sender=email_address, password=email_password):
 
 
 def exit_script(bool):
+    """
+    Exits the script with code 1 if at least one restaurant hasn't posted its
+    lunch yet.
+    :param bool: boolean, return value of _send_mail 
+    """
     if not bool:
         print("One of the restaurants has not posted about today's lunch yet")
         print("Try again later.")
@@ -119,6 +135,5 @@ if __name__ == '__main__':
     exit_script(b)
 
 #TODO: add unittests
-#TODO: docstrings
 #TODO: schedule automatic script execution
 #TODO: add redoing the script if exit code is 1 every x minutes
