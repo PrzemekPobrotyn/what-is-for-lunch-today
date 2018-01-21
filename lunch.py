@@ -1,14 +1,18 @@
 import datetime
 import smtplib
+import socket
 import sys
-
-import facebook
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import facebook
+from requests.exceptions import RequestException
+
 from config import restaurants, posts_limit, keywords
-from credentials import USER_TOKEN, email_address, email_password
+from credentials import USER_TOKEN, email_address, admin_email
 from mailing_list import mailing_list
+
+email_password = 'zle haslo'
 
 
 def start_graph(access_token=USER_TOKEN):
@@ -17,10 +21,22 @@ def start_graph(access_token=USER_TOKEN):
 
 
 def _fetch_restaurant_posts(graph, restaurant_id, limit=posts_limit):
-    resp = graph.get_object(
-        id=restaurant_id,
-        fields='posts.limit({})'.format(limit)
-    )
+
+    try:
+        resp = graph.get_object(
+            id=restaurant_id,
+            fields='posts.limit({})'.format(limit))
+    except (facebook.GraphAPIError, RequestException) as e:
+        message = "An error occurred while attempting to fetch facebook posts: "
+        message += str(e)
+        _send_mail(message=message, to=admin_email)
+
+        print(message)
+        print('\n terminating the script...')
+        # even though invalid execution, don't want to get stuck in a loop
+        # with invalid access token
+        sys.exit(0)
+
     return resp
 
 
@@ -30,7 +46,11 @@ def _is_about_lunch(post, keywords):
 
 def _date_today():
     now = datetime.datetime.now()
-    # return now.strftime("%Y-%m-%d")
+
+    # r = np.random.random()
+    # if r < 0.5:
+    #     return now.strftime("%Y-%m-%d")
+    # else:
     return "2018-01-19"
 
 
@@ -109,12 +129,18 @@ def _send_mail(message, to, sender=email_address, password=email_password):
     body = message
     msg.attach(MIMEText(body, 'html'))
 
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.starttls()
-    server.login(sender, password)
-    text = msg.as_string()
-    server.sendmail(sender, to, text)
-    server.quit()
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender, password)
+        text = msg.as_string()
+        server.sendmail(sender, to, text)
+        server.quit()
+    except (smtplib.SMTPException, socket.gaierror) as e:
+        print('An error occur trying to send an email: ')
+        print(e)
+        print('\n terminating the script...')
+        sys.exit(0)
 
 
 def exit_script(bool):
@@ -127,6 +153,9 @@ def exit_script(bool):
         print("One of the restaurants has not posted about today's lunch yet")
         print("Try again later.")
         sys.exit(1)
+    else:
+        print('Successfully found and mailed lunch menus on {}. '
+              'Enjoy your meal!'.format(_date_today()))
 
 if __name__ == '__main__':
     graph = start_graph()
@@ -136,4 +165,3 @@ if __name__ == '__main__':
 
 #TODO: add unittests
 #TODO: schedule automatic script execution
-#TODO: add redoing the script if exit code is 1 every x minutes
