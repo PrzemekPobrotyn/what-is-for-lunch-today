@@ -9,10 +9,8 @@ import facebook
 from requests.exceptions import RequestException
 
 from config import restaurants, posts_limit, keywords
-from credentials import USER_TOKEN, email_address, admin_email
+from credentials import USER_TOKEN, email_address, email_password, admin_email
 from mailing_list import mailing_list
-
-email_password = 'zle haslo'
 
 
 def start_graph(access_token=USER_TOKEN):
@@ -46,12 +44,7 @@ def _is_about_lunch(post, keywords):
 
 def _date_today():
     now = datetime.datetime.now()
-
-    # r = np.random.random()
-    # if r < 0.5:
-    #     return now.strftime("%Y-%m-%d")
-    # else:
-    return "2018-01-19"
+    return now.strftime("%Y-%m-%d")
 
 
 def _is_today(post):
@@ -137,7 +130,7 @@ def _send_mail(message, to, sender=email_address, password=email_password):
         server.sendmail(sender, to, text)
         server.quit()
     except (smtplib.SMTPException, socket.gaierror) as e:
-        print('An error occur trying to send an email: ')
+        print('An error occurred trying to send an email: ')
         print(e)
         print('\n terminating the script...')
         sys.exit(0)
@@ -158,10 +151,14 @@ def exit_script(bool):
               'Enjoy your meal!'.format(_date_today()))
 
 if __name__ == '__main__':
-    graph = start_graph()
-    lunches = find_todays_lunch_all_restaurants(graph)
-    b = send_menu(lunches, mailing_list)
-    exit_script(b)
+    try:
+        print('DATE: {}'.format(_date_today()))
+        graph = start_graph()
+        lunches = find_todays_lunch_all_restaurants(graph)
+        b = send_menu(lunches, mailing_list)
+        exit_script(b)
+    finally:
+        print('\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
+
 
 #TODO: add unittests
-#TODO: schedule automatic script execution
