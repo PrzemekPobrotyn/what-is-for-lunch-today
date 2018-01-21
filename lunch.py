@@ -151,14 +151,10 @@ def exit_script(bool):
               'Enjoy your meal!'.format(_date_today()))
 
 if __name__ == '__main__':
-    try:
-        print('DATE: {}'.format(_date_today()))
-        graph = start_graph()
-        lunches = find_todays_lunch_all_restaurants(graph)
-        b = send_menu(lunches, mailing_list)
-        exit_script(b)
-    finally:
-        print('\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
+    graph = start_graph()
+    lunches = find_todays_lunch_all_restaurants(graph)
+    b = send_menu(lunches, mailing_list)
+    exit_script(b)
 
 
 #TODO: add unittests
