@@ -12,8 +12,6 @@ from config.credentials import (USER_TOKEN)
 import utils
 
 
-
-
 def start_graph(access_token=USER_TOKEN):
     graph = facebook.GraphAPI(access_token=access_token)
     return graph
@@ -39,7 +37,7 @@ def find_todays_lunch_all_restaurants(
     return lunches
 
 
-def send_menu(lunches_dict, mailing_list):
+def email_menu(lunches_dict, mailing_list):
     """Sends many to all addresses from the mailing list."""
     if utils.check_lunches(lunches_dict):
         message = utils.lunches_dict_to_html(lunches_dict)
@@ -69,7 +67,7 @@ def exit_script(bool):
         print("Try again later.")
         sys.exit(1)
     else:
-        print('Successfully found and mailed lunch menus on {}. '
+        print('Successfully found and posted/mailed lunch menus on {}. '
               'Enjoy your meal!'.format(utils.date_today()))
 
 
@@ -77,7 +75,7 @@ if __name__ == '__main__':
     graph = start_graph()
     lunches = find_todays_lunch_all_restaurants(graph)
     b = post_to_slack(lunches)
-    # b = send_menu(lunches, mailing_list)
+    # b = email_menu(lunches, mailing_list)
     exit_script(b)
 
 
