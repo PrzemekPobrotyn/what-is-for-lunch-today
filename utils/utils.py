@@ -96,6 +96,8 @@ def single_day_from_week_menu(message, day):
             days_lunch += line
             day_seen = True
 
+    return days_lunch
+
 
 # functions for posting to slack
 
