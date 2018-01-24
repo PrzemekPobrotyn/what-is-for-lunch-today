@@ -52,7 +52,7 @@ def find_todays_lunch_single_restaurant(rest_name, resp, keywords=keywords):
         except KeyError:
             pass
 
-    if rest_name in weekly_menus:
+    if rest_name in weekly_menus and message:
         weekday = datetime.datetime.now().weekday()
         message = single_day_from_week_menu(message, weekday)
 
