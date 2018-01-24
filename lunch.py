@@ -1,98 +1,22 @@
-import datetime
-import smtplib
-import socket
 import sys
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 import facebook
 import requests
-from requests.exceptions import RequestException
 
 from config.config import (restaurants,
-                    posts_limit,
-                    keywords,
-                    slack_webhook,
-                    days_list,
-                    weekly_menus)
-from config.credentials import (USER_TOKEN,
-                         email_address,
-                         email_password,
-                         admin_email)
-from config.mailing_list import mailing_list
+                           posts_limit,
+                           keywords,
+                           slack_webhook)
+from config.credentials import (USER_TOKEN)
+
+import utils
+
+
 
 
 def start_graph(access_token=USER_TOKEN):
     graph = facebook.GraphAPI(access_token=access_token)
     return graph
-
-
-def _fetch_restaurant_posts(graph, restaurant_id, limit=posts_limit):
-
-    try:
-        resp = graph.get_object(
-            id=restaurant_id,
-            fields='posts.limit({})'.format(limit))
-    except (facebook.GraphAPIError, RequestException) as e:
-        message = "An error occurred while attempting to fetch facebook posts: "
-        message += str(e)
-        _send_mail(message=message, to=admin_email)
-
-        print(message)
-        print('\n terminating the script...')
-        # even though invalid execution, don't want to get stuck in a loop
-        # with invalid access token
-        sys.exit(0)
-
-    return resp
-
-
-def _is_about_lunch(post, keywords):
-    return any(word in post['message'] for word in keywords) # lack of .split() might be probelmatic, rethink that
-
-
-def _date_today():
-    now = datetime.datetime.now()
-    return now.strftime("%Y-%m-%d")
-
-
-def _is_today(post):
-    return post['created_time'][:10] == _date_today()
-
-
-def _find_todays_lunch_single_restaurant(rest_name, resp, keywords=keywords):
-    message = None
-    for post in resp['posts']['data']:
-        try:
-            if _is_about_lunch(post, keywords) and \
-                    (_is_today(post) or rest_name in weekly_menus):
-                message = post['message']
-        except KeyError:
-            pass
-
-    if rest_name in weekly_menus:
-        weekday = datetime.datetime.now().weekday()
-        message = _single_day_from_week_menu(message, weekday)
-
-    return message
-
-
-def _single_day_from_week_menu(message, day):
-    """
-    This implementation is specific to the way Centrum presents their
-    weekly lunch offer. 
-    It most likely will produce rubbish for other restaurants.
-    """
-    days_lunch = ''
-    day_seen = False  # indicator if we started looping over the correct day
-    for line in message.split('\n'):
-        if days_list[day+1] in line:
-            return days_lunch
-        elif day_seen:
-            days_lunch += ('\n' + line)
-        elif days_list[day] in line:
-            days_lunch += line
-            day_seen = True
 
 
 def find_todays_lunch_all_restaurants(
@@ -109,83 +33,29 @@ def find_todays_lunch_all_restaurants(
 
     lunches = {}
     for rest_name, rest_id in restaurants.items():
-        resp = _fetch_restaurant_posts(graph, rest_id, limit)
-        lunches[rest_name] = _find_todays_lunch_single_restaurant(
+        resp = utils.fetch_restaurant_posts(graph, rest_id, limit)
+        lunches[rest_name] = utils.find_todays_lunch_single_restaurant(
             rest_name, resp, keywords)
     return lunches
 
 
-def _check_lunches(lunches_dict):
-    """Checks if every restaurant posted their lunch already."""
-    if all(lunches_dict.values()):
-        return True
-    else:
-        return False
-
-
 def send_menu(lunches_dict, mailing_list):
     """Sends many to all addresses from the mailing list."""
-    if _check_lunches(lunches_dict):
-        message = _lunches_dict_to_html(lunches_dict)
-        _send_mail(message, to=mailing_list)
+    if utils.check_lunches(lunches_dict):
+        message = utils.lunches_dict_to_html(lunches_dict)
+        utils.send_mail(message, to=mailing_list)
         return True
     else:
         return False
 
 
 def post_to_slack(lunches_dict, webhook=slack_webhook):
-    if _check_lunches(lunches_dict):
-        post = _lunches_dict_to_slack_post(lunches_dict)
+    if utils.check_lunches(lunches_dict):
+        post = utils.lunches_dict_to_slack_post(lunches_dict)
         requests.post(webhook, json={'text': post})
         return True
     else:
         return False
-
-
-def _lunches_dict_to_html(lunches_dict):
-
-    html = "<html><head></head><body>"
-
-    for restaurant in lunches_dict.keys():
-        html += "<h3>{0}</h3><p><pre>{1}</pre></p>".format(
-            restaurant, lunches_dict[restaurant])
-
-    html += "</body></html>"
-
-    return html
-
-
-def _lunches_dict_to_slack_post(lunches_dict):
-    post = ''
-    for restaurant in lunches_dict.keys():
-        post += ('*' + restaurant.upper() + '*')
-        post += '\n\n'
-        post += lunches_dict[restaurant]
-        post += '\n\n\n'
-    return post
-
-
-def _send_mail(message, to, sender=email_address, password=email_password):
-
-    msg = MIMEMultipart()
-    msg['From'] = sender
-    msg['Subject'] = "Dzisiejsza oferta lunchowa: {}".format(_date_today())
-
-    body = message
-    msg.attach(MIMEText(body, 'html'))
-
-    try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender, password)
-        text = msg.as_string()
-        server.sendmail(sender, to, text)
-        server.quit()
-    except (smtplib.SMTPException, socket.gaierror) as e:
-        print('An error occurred trying to send an email: ')
-        print(e)
-        print('\n terminating the script...')
-        sys.exit(0)
 
 
 def exit_script(bool):
@@ -200,7 +70,7 @@ def exit_script(bool):
         sys.exit(1)
     else:
         print('Successfully found and mailed lunch menus on {}. '
-              'Enjoy your meal!'.format(_date_today()))
+              'Enjoy your meal!'.format(utils.date_today()))
 
 
 if __name__ == '__main__':
