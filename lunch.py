@@ -1,4 +1,5 @@
 import datetime
+import json
 import smtplib
 import socket
 import sys
@@ -6,9 +7,10 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import facebook
+import requests
 from requests.exceptions import RequestException
 
-from config import restaurants, posts_limit, keywords
+from config import restaurants, posts_limit, keywords, slack_webhook
 from credentials import USER_TOKEN, email_address, email_password, admin_email
 from mailing_list import mailing_list
 
@@ -39,7 +41,7 @@ def _fetch_restaurant_posts(graph, restaurant_id, limit=posts_limit):
 
 
 def _is_about_lunch(post, keywords):
-    return any(word in post['message'].split() for word in keywords)
+    return any(word in post['message'] for word in keywords) # lack of .split() might be probelmatic, rethink that
 
 
 def _date_today():
@@ -55,7 +57,7 @@ def _find_todays_lunch_single_restaurant(resp, keywords=keywords):
     message = None
     for post in resp['posts']['data']:
         try:
-            if _is_about_lunch(post, keywords) and _is_today(post):
+            if _is_about_lunch(post, keywords): #and _is_today(post):
                 message = post['message']
         except KeyError:
             pass
@@ -84,10 +86,10 @@ def find_todays_lunch_all_restaurants(
 
 def _check_lunches(lunches_dict):
     """Checks if every restaurant posted their lunch already."""
-    if not all(lunches_dict.values()):
-        return False
-    else:
+    if all(lunches_dict.values()):
         return True
+    else:
+        return False
 
 
 def send_menu(lunches_dict, mailing_list):
@@ -95,6 +97,15 @@ def send_menu(lunches_dict, mailing_list):
     if _check_lunches(lunches_dict):
         message = _lunches_dict_to_html(lunches_dict)
         _send_mail(message, to=mailing_list)
+        return True
+    else:
+        return False
+
+
+def post_to_slack(lunches_dict, webhook=slack_webhook):
+    if _check_lunches(lunches_dict):
+        post = _lunches_dict_to_slack_post(lunches_dict)
+        requests.post(webhook, json={'text': post})
         return True
     else:
         return False
@@ -111,6 +122,16 @@ def _lunches_dict_to_html(lunches_dict):
     html += "</body></html>"
 
     return html
+
+
+def _lunches_dict_to_slack_post(lunches_dict):
+    post = ''
+    for restaurant in lunches_dict.keys():
+        post += ('*' + restaurant.upper() + '*')
+        post += '\n\n'
+        post += lunches_dict[restaurant]
+        post += '\n\n\n'
+    return post
 
 
 def _send_mail(message, to, sender=email_address, password=email_password):
@@ -140,7 +161,7 @@ def exit_script(bool):
     """
     Exits the script with code 1 if at least one restaurant hasn't posted its
     lunch yet.
-    :param bool: boolean, return value of _send_mail 
+    :param bool: boolean, return value of _send_mail
     """
     if not bool:
         print("One of the restaurants has not posted about today's lunch yet")
@@ -150,11 +171,14 @@ def exit_script(bool):
         print('Successfully found and mailed lunch menus on {}. '
               'Enjoy your meal!'.format(_date_today()))
 
+
 if __name__ == '__main__':
     graph = start_graph()
     lunches = find_todays_lunch_all_restaurants(graph)
+    post_to_slack(lunches)
     b = send_menu(lunches, mailing_list)
     exit_script(b)
 
 
 #TODO: add unittests
+#TODO: deal with Centrum posting weekly
