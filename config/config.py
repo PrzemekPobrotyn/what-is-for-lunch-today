@@ -7,4 +7,5 @@ keywords = ('lunch', 'obiad', 'lunchu', 'obiadek', 'lunchyk', 'LUNCH',
             'OBIAD', 'LUNCHYK', '#LUNCH', '#lunch', '#obiad', '#obiadek',
             '#lunchyk', 'LUNCH]')
 
-days_list = ['PONIEDZIAŁEK', 'WTOREK', 'ŚRODA', 'CZWARTEK', 'PIĄTEK', 'SOBOTA', 'NIEDZIELA']
+days_list = ['PONIEDZIAŁEK', 'WTOREK', 'ŚRODA', 'CZWARTEK', 'PIĄTEK', 'SOBOTA',
+             'NIEDZIELA']
