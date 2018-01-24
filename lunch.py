@@ -1,5 +1,4 @@
 import datetime
-import json
 import smtplib
 import socket
 import sys
@@ -62,6 +61,24 @@ def _find_todays_lunch_single_restaurant(resp, keywords=keywords):
         except KeyError:
             pass
     return message
+
+
+def _single_day_from_week_menu(message, day):
+    """
+    This implementation is specific to the way Centrum presnets their
+    weekly lunch offer. 
+    It most likely will produce rubbish for other restaurants.
+    """
+    days_lunch = ''
+    day_seen = False  # indicator if we already looped over the correct day
+    for line in message.split('\n'):
+        if days_dict[day+1] in line:
+            return days_lunch
+        elif seen:
+            days_lunch += ('\n' + line)
+        elif days_dict[day] in line:
+            days_lunch += line
+            seen = True
 
 
 def find_todays_lunch_all_restaurants(
@@ -175,8 +192,8 @@ def exit_script(bool):
 if __name__ == '__main__':
     graph = start_graph()
     lunches = find_todays_lunch_all_restaurants(graph)
-    post_to_slack(lunches)
-    b = send_menu(lunches, mailing_list)
+    b = post_to_slack(lunches)
+    # b = send_menu(lunches, mailing_list)
     exit_script(b)
 
 
