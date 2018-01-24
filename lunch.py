@@ -9,8 +9,16 @@ import facebook
 import requests
 from requests.exceptions import RequestException
 
-from config import restaurants, posts_limit, keywords, slack_webhook
-from credentials import USER_TOKEN, email_address, email_password, admin_email
+from config import (restaurants,
+                    posts_limit,
+                    keywords,
+                    slack_webhook,
+                    days_list,
+                    weekly_menus)
+from credentials import (USER_TOKEN,
+                         email_address,
+                         email_password,
+                         admin_email)
 from mailing_list import mailing_list
 
 
@@ -52,33 +60,39 @@ def _is_today(post):
     return post['created_time'][:10] == _date_today()
 
 
-def _find_todays_lunch_single_restaurant(resp, keywords=keywords):
+def _find_todays_lunch_single_restaurant(rest_name, resp, keywords=keywords):
     message = None
     for post in resp['posts']['data']:
         try:
-            if _is_about_lunch(post, keywords): #and _is_today(post):
+            if _is_about_lunch(post, keywords) and \
+                    (_is_today(post) or rest_name in weekly_menus):
                 message = post['message']
         except KeyError:
             pass
+
+    if rest_name in weekly_menus:
+        weekday = datetime.datetime.now().weekday()
+        message = _single_day_from_week_menu(message, weekday)
+
     return message
 
 
 def _single_day_from_week_menu(message, day):
     """
-    This implementation is specific to the way Centrum presnets their
+    This implementation is specific to the way Centrum presents their
     weekly lunch offer. 
     It most likely will produce rubbish for other restaurants.
     """
     days_lunch = ''
-    day_seen = False  # indicator if we already looped over the correct day
+    day_seen = False  # indicator if we started looping over the correct day
     for line in message.split('\n'):
-        if days_dict[day+1] in line:
+        if days_list[day+1] in line:
             return days_lunch
-        elif seen:
+        elif day_seen:
             days_lunch += ('\n' + line)
-        elif days_dict[day] in line:
+        elif days_list[day] in line:
             days_lunch += line
-            seen = True
+            day_seen = True
 
 
 def find_todays_lunch_all_restaurants(
@@ -97,7 +111,7 @@ def find_todays_lunch_all_restaurants(
     for rest_name, rest_id in restaurants.items():
         resp = _fetch_restaurant_posts(graph, rest_id, limit)
         lunches[rest_name] = _find_todays_lunch_single_restaurant(
-            resp, keywords)
+            rest_name, resp, keywords)
     return lunches
 
 
@@ -199,3 +213,4 @@ if __name__ == '__main__':
 
 #TODO: add unittests
 #TODO: deal with Centrum posting weekly
+#TODO: change the logic of the script to post each lunch independently of the others
