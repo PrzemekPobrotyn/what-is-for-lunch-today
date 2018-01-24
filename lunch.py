@@ -5,9 +5,9 @@ import requests
 
 from config.config import (restaurants,
                            posts_limit,
-                           keywords,
-                           slack_webhook)
-from config.credentials import (USER_TOKEN)
+                           keywords)
+
+from config.credentials import USER_TOKEN, slack_webhook
 
 import utils
 
