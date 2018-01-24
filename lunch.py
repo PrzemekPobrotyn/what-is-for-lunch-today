@@ -9,17 +9,17 @@ import facebook
 import requests
 from requests.exceptions import RequestException
 
-from config import (restaurants,
+from config.config import (restaurants,
                     posts_limit,
                     keywords,
                     slack_webhook,
                     days_list,
                     weekly_menus)
-from credentials import (USER_TOKEN,
+from config.credentials import (USER_TOKEN,
                          email_address,
                          email_password,
                          admin_email)
-from mailing_list import mailing_list
+from config.mailing_list import mailing_list
 
 
 def start_graph(access_token=USER_TOKEN):
@@ -212,5 +212,4 @@ if __name__ == '__main__':
 
 
 #TODO: add unittests
-#TODO: deal with Centrum posting weekly
 #TODO: change the logic of the script to post each lunch independently of the others
