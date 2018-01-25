@@ -6,6 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import facebook
+import requests
 from requests.exceptions import RequestException
 
 from config.config import (posts_limit,
@@ -46,8 +47,10 @@ def find_todays_lunch_single_restaurant(rest_name, resp, keywords=keywords):
     message = None
     for post in resp['posts']['data']:
         try:
-            if is_about_lunch(post, keywords) and \
-                    (is_today(post) or rest_name in weekly_menus):
+            # first non empty message about lunch from right day or weekly menu
+            if (is_about_lunch(post, keywords) and
+                    (is_today(post) or rest_name in weekly_menus)
+                    and not message):
                 message = post['message']
         except KeyError:
             pass
@@ -70,7 +73,6 @@ def fetch_restaurant_posts(graph, restaurant_id, limit=posts_limit):
         message += str(e)
         send_mail(message=message, to=admin_email)
 
-        print(message)
         print('\n terminating the script...')
         # even though invalid execution, don't want to get stuck in a loop
         # with invalid access token
@@ -109,6 +111,16 @@ def lunches_dict_to_slack_post(lunches_dict):
         post += lunches_dict[restaurant]
         post += '\n\n\n'
     return post
+
+
+def post_to_slack(post, webhook):
+    try:
+        requests.post(webhook, json={'text': post})
+    except RequestException as e:
+        print('An error occurred trying to post to Slack: ')
+        print(e)
+        print('\n terminating the script...')
+        sys.exit(0)
 
 
 # functions for emailing lunches
