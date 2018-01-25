@@ -1,7 +1,6 @@
 import datetime
 import smtplib
 import socket
-import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -18,6 +17,14 @@ from config.credentials import (email_address,
                                 admin_email)
 
 
+class NetworkError(Exception):
+    """
+    Exception raised when there are problems connecting to facebook, 
+    Slack or email.
+    """
+    pass
+
+
 # functions for checking if conditions are met
 
 def check_lunches(lunches_dict):
@@ -29,7 +36,7 @@ def check_lunches(lunches_dict):
 
 
 def is_about_lunch(post, keywords):
-    return any(word in post['message'] for word in keywords) # lack of .split() might be probelmatic, rethink that
+    return any(word in post['message'] for word in keywords) # lack of .split() might be problematic, rethink that
 
 
 def date_today():
@@ -72,11 +79,8 @@ def fetch_restaurant_posts(graph, restaurant_id, limit=posts_limit):
         message = "An error occurred while attempting to fetch facebook posts: "
         message += str(e)
         send_mail(message=message, to=admin_email)
-
         print('\n terminating the script...')
-        # even though invalid execution, don't want to get stuck in a loop
-        # with invalid access token
-        sys.exit(0)
+        raise NetworkError
 
     return resp
 
@@ -117,10 +121,11 @@ def post_to_slack(post, webhook):
     try:
         requests.post(webhook, json={'text': post})
     except RequestException as e:
-        print('An error occurred trying to post to Slack: ')
-        print(e)
+        message = "An error occurred while attempting to post to slack: "
+        message += str(e)
+        send_mail(message=message, to=admin_email)
         print('\n terminating the script...')
-        sys.exit(0)
+        raise NetworkError
 
 
 # functions for emailing lunches
@@ -158,5 +163,5 @@ def send_mail(message, to, sender=email_address, password=email_password):
         print('An error occurred trying to send an email: ')
         print(e)
         print('\n terminating the script...')
-        sys.exit(0)
+        raise NetworkError
 

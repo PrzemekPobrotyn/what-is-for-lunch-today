@@ -70,9 +70,12 @@ def exit_script(bool):
 
 if __name__ == '__main__':
     graph = start_graph()
-    lunches = find_todays_lunch_all_restaurants(graph)
-    b = post_menu_to_slack(lunches)
-    # b = email_menu(lunches, mailing_list)
+    try:
+        lunches = find_todays_lunch_all_restaurants(graph)
+        b = post_menu_to_slack(lunches)
+        # b = email_menu(lunches, mailing_list)
+    except utils.NetworkError:
+        sys.exit(0)
     exit_script(b)
 
 
