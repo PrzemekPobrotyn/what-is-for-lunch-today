@@ -1,15 +1,12 @@
 import sys
 
 import facebook
-import requests
 
+import utils
 from config.config import (restaurants,
                            posts_limit,
                            keywords)
-
 from config.credentials import USER_TOKEN, slack_webhook
-
-import utils
 
 
 def start_graph(access_token=USER_TOKEN):
@@ -47,10 +44,10 @@ def email_menu(lunches_dict, mailing_list):
         return False
 
 
-def post_to_slack(lunches_dict, webhook=slack_webhook):
+def post_menu_to_slack(lunches_dict, webhook=slack_webhook):
     if utils.check_lunches(lunches_dict):
         post = utils.lunches_dict_to_slack_post(lunches_dict)
-        requests.post(webhook, json={'text': post})
+        utils.post_to_slack(post, webhook)
         return True
     else:
         return False
@@ -74,10 +71,11 @@ def exit_script(bool):
 if __name__ == '__main__':
     graph = start_graph()
     lunches = find_todays_lunch_all_restaurants(graph)
-    b = post_to_slack(lunches)
+    b = post_menu_to_slack(lunches)
     # b = email_menu(lunches, mailing_list)
     exit_script(b)
 
 
 #TODO: add unittests
 #TODO: change the logic of the script to post each lunch independently of the others
+#TODO: error handling of new methods?
