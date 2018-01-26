@@ -19,7 +19,7 @@ from config.credentials import (email_address,
 
 class NetworkError(Exception):
     """
-    Exception raised when there are problems connecting to facebook, 
+    Exception raised when there are problems connecting to facebook,
     Slack or email.
     """
     pass
@@ -36,7 +36,7 @@ def check_lunches(lunches_dict):
 
 
 def is_about_lunch(post, keywords):
-    return any(word in post['message'] for word in keywords) # lack of .split() might be problematic, rethink that
+    return any(word in post['message'] for word in keywords)
 
 
 def date_today():
@@ -76,7 +76,7 @@ def fetch_restaurant_posts(graph, restaurant_id, limit=posts_limit):
             id=restaurant_id,
             fields='posts.limit({})'.format(limit))
     except (facebook.GraphAPIError, RequestException) as e:
-        message = "An error occurred while attempting to fetch facebook posts: "
+        message = "An error occurred while attempting to fetch facebook posts:"
         message += str(e)
         send_mail(message=message, to=admin_email)
         print('\n terminating the script...')
@@ -88,7 +88,7 @@ def fetch_restaurant_posts(graph, restaurant_id, limit=posts_limit):
 def single_day_from_week_menu(message, day):
     """
     This implementation is specific to the way Centrum presents their
-    weekly lunch offer. 
+    weekly lunch offer.
     It most likely will produce rubbish for other restaurants.
     """
     days_lunch = ''
@@ -164,4 +164,3 @@ def send_mail(message, to, sender=email_address, password=email_password):
         print(e)
         print('\n terminating the script...')
         raise NetworkError
-

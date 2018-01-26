@@ -1,13 +1,15 @@
-import mock
-import utils
-import pytest
-from config import keywords
-import smtplib
-import facebook
-import socket
-from requests.exceptions import RequestException
-from config.credentials import admin_email
 import datetime
+import smtplib
+import socket
+
+import facebook
+import mock
+import pytest
+from requests.exceptions import RequestException
+
+import utils
+from config import keywords
+from config.credentials import admin_email
 
 
 # fixtures
@@ -52,7 +54,7 @@ def response():
             {'message': 'WTOREK lunch'}
                 ]
                     }
-    }
+            }
     return resp
 
 
@@ -61,7 +63,7 @@ def response_no_message():
     resp = {'posts': {
         'data': [{'key': 'value'}]
                     }
-    }
+            }
     return resp
 
 
@@ -139,14 +141,14 @@ def test_fetch_restaurants_post_api_error(mock_send_mail):
     with pytest.raises(utils.NetworkError):
         utils.fetch_restaurant_posts(mock_graph, 'restaurant')
         mock_send_mail.assert_called_once_with(
-            'An error occurred while attempting to fetch facebook posts: error',
+            'An error occurred while attempting to fetch facebook posts:error',
             admin_email)
 
     mock_graph.get_object.side_effect = RequestException
     with pytest.raises(utils.NetworkError):
         utils.fetch_restaurant_posts(mock_graph, 'restaurant')
         mock_send_mail.assert_called_once(
-            'An error occurred while attempting to fetch facebook posts: error',
+            'An error occurred while attempting to fetch facebook posts:error',
             admin_email)
 
 
@@ -189,7 +191,7 @@ def test_post_to_slack_with_error(mock_post, mock_send_mail):
 def test_send_mail_with_exceptions_raised(mock_server):
     mock_server.side_effect = smtplib.SMTPException
     with pytest.raises(utils.NetworkError):
-        utils.send_mail('message','to',)
+        utils.send_mail('message', 'to',)
 
     mock_server.side_effect = socket.gaierror
     with pytest.raises(utils.NetworkError):
@@ -205,5 +207,3 @@ def test_successfully_send_mail(mock_server):
         'email_address', 'pass')
     mock_server.return_value.sendmail.assert_called_once()
     mock_server.return_value.quit.assert_called_once()
-
-
