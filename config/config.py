@@ -1,5 +1,4 @@
-restaurants = {'Centrum': 'centrumswiatacom',
-               'Boska': 'boskapraga'}
+restaurants = {'Centrum': 'centrumswiatacom', 'Boska': 'boskapraga'}
                # 'Bazar Klub': 'BazarKlub'}
 weekly_menus = ('Centrum', )
 posts_limit = 20
