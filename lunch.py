@@ -17,7 +17,7 @@ def start_graph(access_token=USER_TOKEN):
 def find_todays_lunch_all_restaurants(
         graph, restaurants=restaurants, keywords=keywords, limit=posts_limit):
     """
-    Finds a lunch posts from all restaruants.
+    Finds a lunch posts from all restaurants.
     :param graph: an authenticated facebook graph API object
     :param restaurants, a dict of restaurants for which to fetch lunches
     :param keywords, list of keywords by which to recognise a post about lunch
@@ -35,7 +35,7 @@ def find_todays_lunch_all_restaurants(
 
 
 def email_menu(lunches_dict, mailing_list):
-    """Sends many to all addresses from the mailing list."""
+    """Sends menu to all addresses from the mailing list."""
     if utils.check_lunches(lunches_dict):
         message = utils.lunches_dict_to_html(lunches_dict)
         utils.send_mail(message, to=mailing_list)
@@ -77,8 +77,3 @@ if __name__ == '__main__':
     except utils.NetworkError:
         sys.exit(0)
     exit_script(b)
-
-
-#TODO: add unittests
-#TODO: change the logic of the script to post each lunch independently of the others
-#TODO: error handling of new methods?
