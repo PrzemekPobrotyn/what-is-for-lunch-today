@@ -77,8 +77,3 @@ if __name__ == '__main__':
     except utils.NetworkError:
         sys.exit(0)
     exit_script(b)
-
-
-#TODO: add unittests
-#TODO: change the logic of the script to post each lunch independently of the others
-#TODO: error handling of new methods?
