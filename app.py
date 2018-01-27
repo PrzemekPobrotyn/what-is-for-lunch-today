@@ -1,6 +1,4 @@
-# very rough sketch of what the app is like?
-
-from flask import Flask, url_for
+from flask import Flask
 from twilio.twiml.voice_response import VoiceResponse, Say
 
 
@@ -17,8 +15,6 @@ def correct_grammar(number):
     # eg for 22 it should be 'zestawy', not 'zestawów'.
     elif number > 4:
         return 'zestawów'
-
-# do the above differently
 
 
 def order_lunch_twiml(meat_no, vege_no):
@@ -48,11 +44,6 @@ def order_lunch_twiml(meat_no, vege_no):
             "Dziękuję i do usłyszenia.",
             voice='alice', language='pl-PL')
 
-    # response.say('Hello, this is Sigmobot. I would like to order lunch for my'
-    #              'human overlords. They would like {} meat lunches and {} '
-    #              'vegetarian lunches'.format(meat_no, vege_no),
-    #              voice='female', language='en-gb')
-
     return str(response)
 
 
@@ -67,5 +58,5 @@ def return_twiml(meat_no, vege_no):
 
 app.run(use_reloader=True, use_debugger=True, threaded=True)
 
-# with app.test_request_context():
-#     print(url_for('return_twiml', meat_no=1, vege_no=2))
+#TODO: change order_lunch_twiml to correctly handle grammar depenind on the number of lunches ordered
+#TODO: add route for StatusCallback, handle busy or unanswered calls

@@ -29,3 +29,8 @@ if __name__ == '__main__':
         to=yellow_pages[args.to],
         from_=twilio_phone_number,
         url=args.url)
+
+
+#TODO: add a script to start a Slack poll and collect reponses
+#TODO: based on responses, run flask app, tunnel it with ngrok, fetch ngroks url and pass it as argument to this script to make the right call
+#TODO: put it all together and update lunch.sh script to run the entire pipeline: fetch lunches, post them to slack, start a poll, collect responses, call the restaurants and make orders
