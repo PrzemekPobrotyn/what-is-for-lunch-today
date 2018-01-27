@@ -1,4 +1,4 @@
-# What's for lunch?
+# WHAT'S FOR LUNCH?
 
 In this repo we present a script for automatically fetching lunch menus from your favourit restaurants' Facebook pages and delivering them straigh to your Slack channel or mailbox.
 
@@ -32,13 +32,13 @@ The meaning of each variable in `config.py` is as follows:
 
 With all the configs and credentials set up, simply run `python lunch.py` to find out what's for lunch today.
 
-### LOGIC OF THE SCRIPT
+### SCRIPTS'S LOGIC
 
 The script works as follows. After fetching `posts_limit` posts for each of the restaurants from Facebook, it iterates over them and checks whether each post is about lunch (using keywords) and whether it is either from the current day or from a restaurant with weekly menus. 
 
 The script returns the first post found which satisfies the above condition. If the post was from a restaurant with weekly postings, it further extracts the menu for just the current day from the weekly menu. Then the menus for all restaurants are posted to Slack or send out to the mailing list.
 
-### SCHEDULING SCRIPTS EXECUTION
+### SCHEDULING SCRIPT EXECUTION
 
 Obviously we don't want to be running the script manually every day. In order to automate its execution, we use macOS's `launchd` (*launch daemon*) to schedule running of `lunch.sh` bash script which repatedly executes `lunch.py` script until all lunches have been fetched. It also collects some logs to a text file in `lunch_script` directory. If there is a fatal error (network error/ authentication credentials out of date), the script execution is stopped and description of the error is emailed to the admin. 
 
@@ -56,6 +56,7 @@ To activate automatic script execution, run `launchctl load com.przemek.lunchscr
 
 Feel free to rename the `.plist` file :)
 
+**ENJOY YOUR LUNCH!**
 
 
 
