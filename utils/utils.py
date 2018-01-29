@@ -11,7 +11,8 @@ from requests.exceptions import RequestException
 from config.config import (posts_limit,
                            keywords,
                            days_list,
-                           weekly_menus)
+                           weekly_menus,
+                           yellow_pages)
 from config.credentials import (email_address,
                                 email_password,
                                 admin_email)
@@ -109,10 +110,10 @@ def single_day_from_week_menu(message, day):
 
 def lunches_dict_to_slack_post(lunches_dict):
     post = ''
-    for restaurant in lunches_dict.keys():
-        post += ('*' + restaurant.upper() + '*')
+    for rest in lunches_dict.keys():
+        post += ('*' + rest.upper() + ' tel: ' + yellow_pages[rest] + '*')
         post += '\n\n'
-        post += lunches_dict[restaurant]
+        post += lunches_dict[rest]
         post += '\n\n\n'
     return post
 
