@@ -95,11 +95,11 @@ def single_day_from_week_menu(message, day):
     days_lunch = ''
     day_seen = False  # indicator if we started looping over the correct day
     for line in message.split('\n'):
-        if days_list[day+1] in line:
+        if days_list[day+1] in line.lower():
             return days_lunch
         elif day_seen:
             days_lunch += ('\n' + line)
-        elif days_list[day] in line:
+        elif days_list[day] in line.lower():
             days_lunch += line
             day_seen = True
 
