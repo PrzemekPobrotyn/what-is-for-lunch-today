@@ -1,7 +1,8 @@
 restaurants = {'Centrum': 'centrumswiatacom', 'Boska': 'boskapraga'}
 weekly_menus = ('Centrum', )
 posts_limit = 20
-keywords = ('lunch', 'obiad', 'LUNCH', 'OBIAD')
+keywords = (
+    'lunch', 'obiad', 'LUNCH', 'OBIAD', 'rozkład jazdy', 'ROZKŁAD JAZDY')
 
 days_list = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota',
              'niedziela']
